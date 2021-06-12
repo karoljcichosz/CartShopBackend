@@ -6,8 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 
@@ -23,7 +22,7 @@ public class Cart implements Serializable {
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "cart", cascade = CascadeType.ALL)
     private List<CartItem> items = new ArrayList<>();
-    private Timestamp lastModifiedTime;
+    private ZonedDateTime lastModifiedTime;
 
     public Collection<CartItem> getItems() {
         return Collections.unmodifiableList(this.items);
@@ -49,6 +48,6 @@ public class Cart implements Serializable {
     }
 
     private void updateLastModifiedTime() {
-        this.lastModifiedTime = Timestamp.from(Instant.now());
+        this.lastModifiedTime = ZonedDateTime.now();
     }
 }

@@ -16,13 +16,16 @@ import java.text.MessageFormat;
 @Entity
 public class CartItem implements Serializable {
 
-    @Id
+    @EmbeddedId
+    CartItemKey cartItemKey = new CartItemKey();
+
     @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("cartCustomerId")
     @JoinColumn(name = "cart_customer_id")
     private Cart cart;
 
-    @Id
-    @ManyToOne
+    @ManyToOne()
+    @MapsId("itemId")
     @JoinColumn(name = "item_id")
     private Item item;
 
@@ -37,7 +40,7 @@ public class CartItem implements Serializable {
     }
 
     @Override
-    public String toString(){
-        return MessageFormat.format("[{0} : {1}]",cart.getCustomerId(),item.getId());
+    public String toString() {
+        return MessageFormat.format("[{0} : {1}]", cart.getCustomerId(), item.getId());
     }
 }

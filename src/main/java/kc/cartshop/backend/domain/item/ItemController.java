@@ -23,8 +23,8 @@ public class ItemController {
     }
 
     @PostMapping()
-    ResponseEntity<ItemOutput> createItem(@RequestBody ItemInput itemInput){
-        Item item= ItemMapper.map(itemInput);
+    ResponseEntity<ItemOutput> createItem(@RequestBody ItemInput itemInput) {
+        Item item = ItemMapper.map(itemInput);
         itemRepository.save(item);
         return new ResponseEntity<>(ItemMapper.map(item), HttpStatus.OK);
     }

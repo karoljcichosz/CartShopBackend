@@ -13,8 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import java.sql.Timestamp;
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -59,7 +58,7 @@ public class CartController {
     ResponseEntity<String> createCart() {
         Cart cart = new Cart();
         cart.setCustomerId(UUID.randomUUID());
-        cart.setLastModifiedTime(Timestamp.from(Instant.now()));
+        cart.setLastModifiedTime(ZonedDateTime.now());
         cartRepository.save(cart);
         return new ResponseEntity<>(cart.getCustomerId().toString(), HttpStatus.OK);
     }
@@ -67,39 +66,43 @@ public class CartController {
     @PutMapping(value = "/{id}/item")
     ResponseEntity updateItem(@PathVariable UUID id, @RequestBody CartItemInput cartItemInput) {
         //TODO: wydzielic do serwisu te rzeczy
-            Optional<Cart> oCart = cartRepository.findById(id);
-            if(oCart.isPresent()) {
-                Cart cart = oCart.get();
-                //TODO: moze jak sie uda to equalsem
-                Optional<CartItem> oCartItem = cart.getItems().stream().filter(ci -> ci.getItem().getId() == cartItemInput.getItemId()).findFirst();
-                if (oCartItem.isPresent()) {
-                    //TODO: moze jakos do metody to powsadzac (1)
-                    CartItem cartItem = oCartItem.get();
-                    if (cartItemInput.getQuantity() > 0) {
-                        Optional<Item> oItem = itemRepository.findById(cartItem.getItem().getId());
-                        if (oItem.isPresent() && oItem.get().getQuantity() >= cartItemInput.getQuantity())
-                            cartItem.setQuantity(cartItemInput.getQuantity());
-                        else
-                            throw new ItemQuantityNotAvailableException();
-                    } else
-                        cart.removeItemFromCart(cartItem);
-
-                } else if (cartItemInput.getQuantity() > 0) {
-                    //TODO: moze jakos do metody to powsadzac (2)
-                    Optional<Item> oItem = itemRepository.findById(cartItemInput.getItemId());
+        Optional<Cart> oCart = cartRepository.findById(id);
+        if (oCart.isPresent()) {
+            Cart cart = oCart.get();
+            //TODO: moze jak sie uda to equalsem
+            Optional<CartItem> oCartItem = cart.getItems().stream().filter(ci -> ci.getItem().getId() == cartItemInput.getItemId()).findFirst();
+            if (oCartItem.isPresent()) {
+                //TODO: moze jakos do metody to powsadzac (1)
+                CartItem cartItem = oCartItem.get();
+                if (cartItemInput.getQuantity() > 0) {
+                    Optional<Item> oItem = itemRepository.findById(cartItem.getItem().getId());
                     if (oItem.isPresent() && oItem.get().getQuantity() >= cartItemInput.getQuantity())
-                        cart.addItemToCart(new CartItem(cart, oItem.get(), cartItemInput.getQuantity()));
-                    else {
-                        if (oItem.isPresent())
-                            throw new ItemQuantityNotAvailableException();
-                        else throw new NullPointerException();
-                    }
+                        cartItem.setQuantity(cartItemInput.getQuantity());
+                    else
+                        throw new ItemQuantityNotAvailableException();
+                } else
+                    cart.removeItemFromCart(cartItem);
 
+            } else if (cartItemInput.getQuantity() > 0) {
+                //TODO: moze jakos do metody to powsadzac (2)
+                Optional<Item> oItem = itemRepository.findById(cartItemInput.getItemId());
+                if (oItem.isPresent() && oItem.get().getQuantity() >= cartItemInput.getQuantity()) {
+                    CartItem cartItem = new CartItem();
+                    cartItem.setCart(cart);
+                    cartItem.setItem(oItem.get());
+                    cartItem.setQuantity(cartItemInput.getQuantity());
+                    cart.addItemToCart(cartItem);
+                } else {
+                    if (oItem.isPresent())
+                        throw new ItemQuantityNotAvailableException();
+                    else throw new NullPointerException();
                 }
-                cartRepository.save(cart);
-                return new ResponseEntity<>(HttpStatus.OK);
+
             }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            cartRepository.save(cart);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping(value = "/{id}/item/{itemId}")
@@ -118,17 +121,17 @@ public class CartController {
     }
 
     @PostMapping(value = "/cartWithItem")
-    ResponseEntity<CartOutput> createCartWithItem(){
-        Cart cart=new Cart();
+    ResponseEntity<CartOutput> createCartWithItem() {
+        Cart cart = new Cart();
         cart.setCustomerId(UUID.randomUUID());
-        cart.setLastModifiedTime(Timestamp.from(Instant.now()));
+        cart.setLastModifiedTime(ZonedDateTime.now());
         cartRepository.save(cart);
-        Item item=new Item();
+        Item item = new Item();
         item.setName("X");
         item.setPrice(2.0);
         item.setQuantity(200);
         itemRepository.save(item);
-        CartItem cartItem=new CartItem();
+        CartItem cartItem = new CartItem();
         cartItem.setQuantity(10);
         cartItem.setItem(item);
         cartItem.setCart(cart);
