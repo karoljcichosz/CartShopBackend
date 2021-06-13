@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
@@ -20,7 +21,7 @@ public class User {
     private boolean enabled;
     private boolean tokenExpired;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(
@@ -35,7 +36,9 @@ public class User {
         this.roles = roles;
     }
 
-    public Privilege[] getPrivileges() {
-        return new Privilege[0];
+    public List<Privilege> getPrivileges() {
+        List<Privilege> privileges = new LinkedList<>();
+        roles.forEach(r->privileges.addAll(r.getPrivileges()));
+        return privileges;
     }
 }

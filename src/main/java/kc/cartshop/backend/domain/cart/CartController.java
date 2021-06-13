@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @ExposesResourceFor(Cart.class)
 @RequestMapping("/carts")
 public class CartController {
-
+    //TODO: powydzielac do serwisu, zrobic transactional
     private final ItemRepository itemRepository;
     private final CartRepository cartRepository;
 

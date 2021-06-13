@@ -5,6 +5,7 @@ import kc.cartshop.data.output.UserOutput;
 import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,13 @@ public class UserController {
                         .build()).collect(Collectors.toList());
     }
 
-    @PostMapping("/users")
+    @PostMapping("/")
     void addUser(@RequestBody UserInput user) {
         userService.registerNewUserAccount(user);
+    }
+
+    @GetMapping("/user")
+    public Principal getUser(Principal user){
+        return user;
     }
 }

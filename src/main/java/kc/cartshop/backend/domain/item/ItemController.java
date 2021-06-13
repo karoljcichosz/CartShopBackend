@@ -23,14 +23,14 @@ public class ItemController {
     }
 
     @PostMapping()
-    ResponseEntity<ItemOutput> createItem(@RequestBody ItemInput itemInput) {
+    public ResponseEntity<ItemOutput> addItem(@RequestBody ItemInput itemInput) {
         Item item = ItemMapper.map(itemInput);
         itemRepository.save(item);
-        return new ResponseEntity<>(ItemMapper.map(item), HttpStatus.OK);
+        return new ResponseEntity<>(ItemMapper.map(item), HttpStatus.CREATED);
     }
 
     @GetMapping
-    ResponseEntity<List<ItemOutput>> getItems(){
+    public ResponseEntity<List<ItemOutput>> getItems(){
         return new ResponseEntity<>(itemRepository.findAll().stream().map(i->ItemMapper.map(i)).collect(Collectors.toList()), HttpStatus.OK);
     }
 }

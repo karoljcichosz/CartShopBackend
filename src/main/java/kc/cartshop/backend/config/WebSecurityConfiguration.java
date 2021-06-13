@@ -1,5 +1,6 @@
 package kc.cartshop.backend.config;
 
+import kc.cartshop.backend.security.AuthenticationEntryPoint;
 import kc.cartshop.backend.security.MyUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.server.csrf.CsrfToken;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -30,19 +32,20 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MyUserDetailsService userDetailsService;
-
+    @Autowired
+    private AuthenticationEntryPoint authenticationEntryPoint;
     //TODO: dodac odpowiednie filtrowanie na endpointach zeby ogarnc autoryzacje jakas
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
         http
-                .httpBasic()
+                .httpBasic().authenticationEntryPoint(authenticationEntryPoint)
                 .and()
                 .authorizeRequests()
                 .antMatchers(  "/login").permitAll()
                 .antMatchers(HttpMethod.GET,"/items").permitAll()
-                .anyRequest().authenticated().and()
-                .addFilterAfter(new CsrfHeaderFilter(), CsrfFilter.class);
+                .anyRequest().authenticated().and().csrf().disable();
+                //.addFilterAfter(new CsrfHeaderFilter(), CsrfFilter.class);
     }
 
     @Override
@@ -82,5 +85,6 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         authProvider.setPasswordEncoder(encoder());
         return authProvider;
     }
+
 
 }
