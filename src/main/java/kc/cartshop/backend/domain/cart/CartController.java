@@ -5,6 +5,7 @@ import kc.cartshop.backend.domain.item.Item;
 import kc.cartshop.backend.domain.item.ItemQuantityNotAvailableException;
 import kc.cartshop.backend.domain.item.ItemRepository;
 import kc.cartshop.backend.util.CartMapper;
+import kc.cartshop.data.input.CartInput;
 import kc.cartshop.data.input.CartItemInput;
 import kc.cartshop.data.output.CartOutput;
 import org.springframework.hateoas.server.ExposesResourceFor;
@@ -16,7 +17,6 @@ import javax.persistence.EntityNotFoundException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -44,8 +44,8 @@ public class CartController {
         }
     }
 
-    @GetMapping(value = "/{id}/")
-    ResponseEntity<CartOutput> getCart(@PathVariable UUID id) {
+    @GetMapping(value = "/{id}")
+    ResponseEntity<CartOutput> getCart(@PathVariable Long id) {
         try {
             Cart cart = cartRepository.getCartByCustomerId(id);
             return new ResponseEntity<>(CartMapper.map(cart), HttpStatus.OK);
@@ -54,17 +54,28 @@ public class CartController {
         }
     }
 
-    @PostMapping()
-    ResponseEntity<String> createCart() {
+    @PostMapping("/{id}")
+    ResponseEntity<String> createCart(@PathVariable Long id) {
         Cart cart = new Cart();
-        cart.setCustomerId(UUID.randomUUID());
+        cart.setCustomerId(id);
         cart.setLastModifiedTime(ZonedDateTime.now());
         cartRepository.save(cart);
         return new ResponseEntity<>(cart.getCustomerId().toString(), HttpStatus.OK);
     }
 
+    @PutMapping("/{id}")
+    ResponseEntity<CartOutput> updateCart(@PathVariable Long id, @RequestBody CartInput cartInput) {
+        try {
+            Cart newCart=CartMapper.map(cartInput,id,itemRepository);
+            cartRepository.save(newCart);
+            return new ResponseEntity<>(CartMapper.map(newCart), HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PutMapping(value = "/{id}/item")
-    ResponseEntity updateItem(@PathVariable UUID id, @RequestBody CartItemInput cartItemInput) {
+    ResponseEntity updateItem(@PathVariable Long id, @RequestBody CartItemInput cartItemInput) {
         //TODO: wydzielic do serwisu te rzeczy
         Optional<Cart> oCart = cartRepository.findById(id);
         if (oCart.isPresent()) {
@@ -106,7 +117,7 @@ public class CartController {
     }
 
     @DeleteMapping(value = "/{id}/item/{itemId}")
-    ResponseEntity deleteItem(@PathVariable UUID id, @PathVariable UUID itemId) {
+    ResponseEntity deleteItem(@PathVariable Long id, @PathVariable Long itemId) {
         try {
             Cart cart = cartRepository.getById(id);
             Optional<CartItem> oCartItem = cart.getItems().stream().filter(ci -> ci.getItem().getId() == itemId).findFirst();
@@ -120,10 +131,10 @@ public class CartController {
         }
     }
 
-    @PostMapping(value = "/cartWithItem")
-    ResponseEntity<CartOutput> createCartWithItem() {
+    @PostMapping(value = "/cartWithItem/{id}")
+    ResponseEntity<CartOutput> createCartWithItem(@PathVariable Long id) {
         Cart cart = new Cart();
-        cart.setCustomerId(UUID.randomUUID());
+        cart.setCustomerId(id);
         cart.setLastModifiedTime(ZonedDateTime.now());
         cartRepository.save(cart);
         Item item = new Item();

@@ -18,7 +18,7 @@ public class Cart implements Serializable {
 
     @Id
     @Column(name = "customer_id")
-    private UUID customerId;
+    private Long customerId;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "cart", cascade = CascadeType.ALL)
     private List<CartItem> items = new ArrayList<>();
@@ -37,6 +37,7 @@ public class Cart implements Serializable {
 
     public void removeItemFromCart(CartItem cartItem) {
         this.items.remove(cartItem);
+        updateLastModifiedTime();
     }
 
     public double getPrice() {

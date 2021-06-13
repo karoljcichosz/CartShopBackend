@@ -5,12 +5,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
-public interface CartRepository extends JpaRepository<Cart, UUID> {
+public interface CartRepository extends JpaRepository<Cart, Long> {
     @Query("select c from Cart c join c.items i where i.item.name=?1")
     List<Cart> getCartsByItemName(String name);
 
-    Cart getCartByCustomerId(UUID customerId);
+    Cart getCartByCustomerId(Long customerId);
 }
